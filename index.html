@@ -184,6 +184,20 @@
         .hidden {
             display: none !important;
         }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        #manual-code {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -218,6 +232,10 @@
                 📷 Iniciar Scanner
             </button>
 
+            <button class="btn btn-secondary" onclick="toggleManualInput()" style="margin-top: 5px;">
+                ✍️ Usar Entrada Manual
+            </button>
+
             <div id="camera-status" class="hidden"></div>
 
             <div id="reader" class="hidden"></div>
@@ -225,6 +243,24 @@
             <button id="stop-btn" class="btn btn-danger hidden" onclick="stopScanner()">
                 ⏹️ Parar Scanner
             </button>
+
+            <div id="manual-input-section" class="hidden" style="margin-top: 20px;">
+                <div class="info-box" style="border-left-color: #ffc107;">
+                    <strong>✍️ Entrada Manual</strong>
+                    <p>Se a câmera não funcionar, digite o código do ingresso manualmente:</p>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input 
+                        type="text" 
+                        id="manual-code" 
+                        placeholder="Ex: NEEL1761875445591-A"
+                        style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; text-transform: uppercase;"
+                    >
+                    <button class="btn btn-primary" onclick="validateManualCode()" style="width: auto; padding: 12px 24px;">
+                        Validar
+                    </button>
+                </div>
+            </div>
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
@@ -238,6 +274,7 @@
     <script>
         let html5QrCode;
         let isScanning = false;
+        let cameras = [];
 
         // Função para extrair o código do ingresso do texto do QR Code
         function extractCodigoFromQRText(qrText) {
@@ -256,7 +293,24 @@
             return null;
         }
 
-        // Função para iniciar o scanner
+        // Função para detectar câmeras disponíveis
+        async function detectCameras() {
+            try {
+                const devices = await Html5Qrcode.getCameras();
+                cameras = devices;
+                
+                if (devices && devices.length > 0) {
+                    console.log(`${devices.length} câmera(s) detectada(s)`);
+                    return true;
+                }
+                return false;
+            } catch (err) {
+                console.error('Erro ao detectar câmeras:', err);
+                return false;
+            }
+        }
+
+        // Função melhorada para iniciar o scanner (compatível com Android)
         async function startScanner() {
             const webhookUrl = document.getElementById('webhook-url').value.trim();
             
@@ -267,31 +321,78 @@
 
             if (isScanning) return;
 
-            try {
-                const cameraStatus = document.getElementById('camera-status');
-                cameraStatus.textContent = 'Inicializando câmera...';
-                cameraStatus.style.background = '#fff3cd';
-                cameraStatus.style.color = '#856404';
-                cameraStatus.classList.remove('hidden');
+            const cameraStatus = document.getElementById('camera-status');
+            cameraStatus.textContent = '🔍 Procurando câmeras...';
+            cameraStatus.style.background = '#fff3cd';
+            cameraStatus.style.color = '#856404';
+            cameraStatus.classList.remove('hidden');
 
+            // Detecta câmeras disponíveis
+            const hasCameras = await detectCameras();
+            
+            if (!hasCameras) {
+                cameraStatus.textContent = '❌ Nenhuma câmera encontrada';
+                cameraStatus.style.background = '#f8d7da';
+                cameraStatus.style.color = '#721c24';
+                showResult('error', 'Câmera Não Encontrada', 
+                    'Não foi possível encontrar uma câmera neste dispositivo. Use o modo de entrada manual abaixo.');
+                document.getElementById('manual-input-section').classList.remove('hidden');
+                return;
+            }
+
+            try {
+                cameraStatus.textContent = '📷 Inicializando câmera...';
+                
                 document.getElementById('reader').classList.remove('hidden');
                 document.getElementById('start-btn').classList.add('hidden');
                 document.getElementById('stop-btn').classList.remove('hidden');
 
                 html5QrCode = new Html5Qrcode("reader");
 
+                // Configuração otimizada para Android
                 const config = { 
-                    fps: 10, 
+                    fps: 10,
                     qrbox: { width: 250, height: 250 },
-                    aspectRatio: 1.0
+                    aspectRatio: 1.0,
+                    disableFlip: false,
+                    // Configurações adicionais para Android
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true
+                    }
                 };
 
-                await html5QrCode.start(
-                    { facingMode: "environment" },
-                    config,
-                    onScanSuccess,
-                    onScanError
-                );
+                // Tenta primeiro com a câmera traseira (environment)
+                try {
+                    await html5QrCode.start(
+                        { facingMode: "environment" },
+                        config,
+                        onScanSuccess,
+                        onScanError
+                    );
+                } catch (err1) {
+                    console.log('Tentativa 1 falhou, tentando com ID da câmera...');
+                    
+                    // Se falhar, tenta com o ID da última câmera (geralmente a traseira)
+                    const lastCamera = cameras[cameras.length - 1];
+                    try {
+                        await html5QrCode.start(
+                            lastCamera.id,
+                            config,
+                            onScanSuccess,
+                            onScanError
+                        );
+                    } catch (err2) {
+                        console.log('Tentativa 2 falhou, tentando com primeira câmera...');
+                        
+                        // Se ainda falhar, tenta com a primeira câmera
+                        await html5QrCode.start(
+                            cameras[0].id,
+                            config,
+                            onScanSuccess,
+                            onScanError
+                        );
+                    }
+                }
 
                 isScanning = true;
                 cameraStatus.textContent = '✅ Câmera ativa - Aponte para o QR Code';
@@ -300,7 +401,28 @@
 
             } catch (err) {
                 console.error('Erro ao iniciar scanner:', err);
-                showResult('error', 'Erro na Câmera', 'Não foi possível acessar a câmera. Verifique as permissões do navegador.');
+                
+                let errorMessage = 'Não foi possível acessar a câmera. ';
+                
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    errorMessage += 'Por favor, permita o acesso à câmera nas configurações do navegador.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'Câmera não encontrada neste dispositivo.';
+                } else if (err.name === 'NotReadableError') {
+                    errorMessage += 'A câmera está sendo usada por outro aplicativo. Feche outros apps e tente novamente.';
+                } else {
+                    errorMessage += 'Erro: ' + err.message;
+                }
+                
+                cameraStatus.textContent = '❌ Erro ao acessar câmera';
+                cameraStatus.style.background = '#f8d7da';
+                cameraStatus.style.color = '#721c24';
+                
+                showResult('error', 'Erro na Câmera', errorMessage + '<br><br>💡 <strong>Tente:</strong><br>1. Recarregar a página<br>2. Permitir acesso à câmera<br>3. Fechar outros apps usando a câmera<br>4. Usar o modo de entrada manual abaixo');
+                
+                // Mostra opção de entrada manual
+                document.getElementById('manual-input-section').classList.remove('hidden');
+                
                 resetScanner();
             }
         }
@@ -444,6 +566,47 @@
             `;
             resultDiv.style.display = 'block';
         }
+
+        // Função para alternar entrada manual
+        function toggleManualInput() {
+            const manualSection = document.getElementById('manual-input-section');
+            manualSection.classList.toggle('hidden');
+            
+            if (!manualSection.classList.contains('hidden')) {
+                // Foca no campo de entrada
+                document.getElementById('manual-code').focus();
+            }
+        }
+
+        // Função para validar código digitado manualmente
+        async function validateManualCode() {
+            const codigo = document.getElementById('manual-code').value.trim().toUpperCase();
+            
+            if (!codigo) {
+                showResult('warning', 'Código Vazio', 'Por favor, digite o código do ingresso.');
+                return;
+            }
+
+            // Simula o texto do QR code para manter compatibilidade
+            const qrData = `CODIGO: ${codigo}`;
+            
+            await validateTicket(codigo, qrData);
+            
+            // Limpa o campo após validação
+            document.getElementById('manual-code').value = '';
+        }
+
+        // Permite validar com Enter no campo manual
+        document.addEventListener('DOMContentLoaded', function() {
+            const manualCodeInput = document.getElementById('manual-code');
+            if (manualCodeInput) {
+                manualCodeInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        validateManualCode();
+                    }
+                });
+            }
+        });
 
         // Salva a URL do webhook no localStorage
         document.getElementById('webhook-url').addEventListener('blur', function() {
