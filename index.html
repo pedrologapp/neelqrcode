@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de Ingressos - QR Code</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        #reader {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 3px solid #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+
+        .result.warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .result p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #667eea;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #camera-status {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎫 Validador de Ingressos</h1>
+            <p>Sistema de Check-in por QR Code</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <strong>⚙️ Configuração Necessária:</strong>
+                <p>1. Cole a URL do seu webhook N8N abaixo</p>
+                <p>2. O webhook deve receber o campo "codigo"</p>
+                <p>3. E retornar: { "success": true/false, "message": "...", "data": {...} }</p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label for="webhook-url" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">
+                    URL do Webhook N8N:
+                </label>
+                <input 
+                    type="text" 
+                    id="webhook-url" 
+                    placeholder="https://seu-n8n.com/webhook/validar-ingresso"
+                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;"
+                    value=""
+                >
+            </div>
+
+            <button id="start-btn" class="btn btn-primary" onclick="startScanner()">
+                📷 Iniciar Scanner
+            </button>
+
+            <div id="camera-status" class="hidden"></div>
+
+            <div id="reader" class="hidden"></div>
+
+            <button id="stop-btn" class="btn btn-danger hidden" onclick="stopScanner()">
+                ⏹️ Parar Scanner
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Validando ingresso...</p>
+            </div>
+
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrCode;
+        let isScanning = false;
+
+        // Função para extrair o código do ingresso do texto do QR Code
+        function extractCodigoFromQRText(qrText) {
+            // Procura pela linha "CODIGO: XXXXXXX"
+            const codigoMatch = qrText.match(/CODIGO:\s*([^\s\n]+)/);
+            if (codigoMatch && codigoMatch[1]) {
+                return codigoMatch[1];
+            }
+            
+            // Alternativa: procura por "INGRESSO: XXXXXXX"
+            const ingressoMatch = qrText.match(/INGRESSO:\s*([^\s\n]+)/);
+            if (ingressoMatch && ingressoMatch[1]) {
+                return ingressoMatch[1];
+            }
+            
+            return null;
+        }
+
+        // Função para iniciar o scanner
+        async function startScanner() {
+            const webhookUrl = document.getElementById('webhook-url').value.trim();
+            
+            if (!webhookUrl) {
+                showResult('error', 'Erro de Configuração', 'Por favor, insira a URL do webhook N8N antes de iniciar o scanner.');
+                return;
+            }
+
+            if (isScanning) return;
+
+            try {
+                const cameraStatus = document.getElementById('camera-status');
+                cameraStatus.textContent = 'Inicializando câmera...';
+                cameraStatus.style.background = '#fff3cd';
+                cameraStatus.style.color = '#856404';
+                cameraStatus.classList.remove('hidden');
+
+                document.getElementById('reader').classList.remove('hidden');
+                document.getElementById('start-btn').classList.add('hidden');
+                document.getElementById('stop-btn').classList.remove('hidden');
+
+                html5QrCode = new Html5Qrcode("reader");
+
+                const config = { 
+                    fps: 10, 
+                    qrbox: { width: 250, height: 250 },
+                    aspectRatio: 1.0
+                };
+
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess,
+                    onScanError
+                );
+
+                isScanning = true;
+                cameraStatus.textContent = '✅ Câmera ativa - Aponte para o QR Code';
+                cameraStatus.style.background = '#d4edda';
+                cameraStatus.style.color = '#155724';
+
+            } catch (err) {
+                console.error('Erro ao iniciar scanner:', err);
+                showResult('error', 'Erro na Câmera', 'Não foi possível acessar a câmera. Verifique as permissões do navegador.');
+                resetScanner();
+            }
+        }
+
+        // Função para parar o scanner
+        async function stopScanner() {
+            if (html5QrCode && isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    resetScanner();
+                } catch (err) {
+                    console.error('Erro ao parar scanner:', err);
+                }
+            }
+        }
+
+        // Função para resetar o scanner
+        function resetScanner() {
+            isScanning = false;
+            document.getElementById('reader').classList.add('hidden');
+            document.getElementById('start-btn').classList.remove('hidden');
+            document.getElementById('stop-btn').classList.add('hidden');
+            document.getElementById('camera-status').classList.add('hidden');
+        }
+
+        // Callback quando QR Code é lido com sucesso
+        async function onScanSuccess(decodedText, decodedResult) {
+            console.log('QR Code lido:', decodedText);
+
+            // Pausa o scanner temporariamente
+            if (html5QrCode && isScanning) {
+                await html5QrCode.pause();
+            }
+
+            // Extrai o código do ingresso
+            const codigo = extractCodigoFromQRText(decodedText);
+
+            if (!codigo) {
+                showResult('warning', 'QR Code Inválido', 'Não foi possível extrair o código do ingresso deste QR Code.');
+                setTimeout(() => {
+                    if (html5QrCode && isScanning) {
+                        html5QrCode.resume();
+                    }
+                }, 3000);
+                return;
+            }
+
+            // Valida com o webhook
+            await validateTicket(codigo, decodedText);
+        }
+
+        // Callback para erros de leitura (pode ser ignorado)
+        function onScanError(errorMessage) {
+            // Ignora erros comuns de scan
+        }
+
+        // Função para validar o ingresso via webhook
+        async function validateTicket(codigo, qrData) {
+            const webhookUrl = document.getElementById('webhook-url').value.trim();
+            const loading = document.getElementById('loading');
+            
+            loading.classList.add('active');
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        codigo: codigo,
+                        qr_data: qrData,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                const result = await response.json();
+
+                loading.classList.remove('active');
+
+                if (result.success) {
+                    // Extrai informações do participante
+                    const nomeMatch = qrData.match(/PARTICIPANTE:\s*([^\n]+)/);
+                    const nome = nomeMatch ? nomeMatch[1] : 'N/A';
+
+                    showResult('success', '✅ Ingresso Validado!', 
+                        `<strong>Código:</strong> ${codigo}<br>
+                         <strong>Participante:</strong> ${nome}<br>
+                         <strong>Hora:</strong> ${new Date().toLocaleTimeString('pt-BR')}<br>
+                         ${result.message || 'Check-in realizado com sucesso!'}`
+                    );
+
+                    // Aguarda 3 segundos e retoma o scanner
+                    setTimeout(() => {
+                        document.getElementById('result').style.display = 'none';
+                        if (html5QrCode && isScanning) {
+                            html5QrCode.resume();
+                        }
+                    }, 3000);
+
+                } else {
+                    showResult('error', '❌ Ingresso Inválido', 
+                        `<strong>Código:</strong> ${codigo}<br>
+                         <strong>Motivo:</strong> ${result.message || 'Ingresso não encontrado ou já utilizado'}`
+                    );
+
+                    // Aguarda 3 segundos e retoma o scanner
+                    setTimeout(() => {
+                        document.getElementById('result').style.display = 'none';
+                        if (html5QrCode && isScanning) {
+                            html5QrCode.resume();
+                        }
+                    }, 3000);
+                }
+
+            } catch (error) {
+                console.error('Erro na validação:', error);
+                loading.classList.remove('active');
+                
+                showResult('error', 'Erro de Conexão', 
+                    'Não foi possível conectar ao servidor. Verifique a URL do webhook e sua conexão com a internet.'
+                );
+
+                // Aguarda 3 segundos e retoma o scanner
+                setTimeout(() => {
+                    document.getElementById('result').style.display = 'none';
+                    if (html5QrCode && isScanning) {
+                        html5QrCode.resume();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Função para mostrar resultado
+        function showResult(type, title, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = `
+                <h3>${title}</h3>
+                <p>${message}</p>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Salva a URL do webhook no localStorage
+        document.getElementById('webhook-url').addEventListener('blur', function() {
+            localStorage.setItem('webhook-url', this.value);
+        });
+
+        // Carrega a URL do webhook do localStorage
+        window.addEventListener('load', function() {
+            const savedUrl = localStorage.getItem('webhook-url');
+            if (savedUrl) {
+                document.getElementById('webhook-url').value = savedUrl;
+            }
+        });
+    </script>
+</body>
+</html>
