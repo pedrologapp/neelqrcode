@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Presença - Sistema Completo</title>
+    <title>Validador de Ingressos - QR Code</title>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 600px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -32,85 +32,40 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 30px;
-            background: #f8f9fa;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
         }
 
-        .stat-number {
-            font-size: 36px;
-            font-weight: bold;
-            color: #667eea;
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
         }
 
-        .stat-label {
+        .header p {
+            opacity: 0.9;
             font-size: 14px;
-            color: #6c757d;
-            margin-top: 5px;
         }
 
         .content {
             padding: 30px;
         }
 
-        .search-bar {
-            display: flex;
-            gap: 10px;
+        #reader {
+            border-radius: 10px;
+            overflow: hidden;
             margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .search-bar input {
-            flex: 1;
-            min-width: 250px;
-            padding: 12px 20px;
-            border: 2px solid #dee2e6;
-            border-radius: 10px;
-            font-size: 16px;
-        }
-
-        .search-bar select {
-            padding: 12px 20px;
-            border: 2px solid #dee2e6;
-            border-radius: 10px;
-            font-size: 16px;
-            min-width: 150px;
+            border: 3px solid #667eea;
         }
 
         .btn {
-            padding: 12px 24px;
+            width: 100%;
+            padding: 15px;
             border: none;
             border-radius: 10px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-bottom: 10px;
         }
 
         .btn-primary {
@@ -120,125 +75,87 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-success {
-            background: #28a745;
+        .btn-danger {
+            background: #e74c3c;
             color: white;
         }
 
-        .btn-warning {
-            background: #ffc107;
-            color: #000;
+        .btn-danger:hover {
+            background: #c0392b;
         }
 
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .participants-table {
-            width: 100%;
-            border-collapse: collapse;
+        .result {
             margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            animation: slideIn 0.3s ease;
         }
 
-        .participants-table th {
-            background: #667eea;
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .participants-table td {
-            padding: 15px;
-            border-bottom: 1px solid #dee2e6;
+        .result.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
         }
 
-        .participants-table tr:hover {
+        .result.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+
+        .result.warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .result p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .info-box {
             background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
         }
 
-        .participant-row {
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .participant-row.checked-in {
-            background: #d4edda !important;
-        }
-
-        .participant-row.partial {
-            background: #fff3cd !important;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .status-valid {
-            background: #28a745;
-            color: white;
-        }
-
-        .status-used {
-            background: #6c757d;
-            color: white;
-        }
-
-        .status-partial {
-            background: #ffc107;
-            color: #000;
-        }
-
-        .tickets-control {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .ticket-button {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            border: 2px solid #667eea;
-            background: white;
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
             color: #667eea;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .ticket-button:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .ticket-button.active {
-            background: #28a745;
-            border-color: #28a745;
-            color: white;
-        }
-
-        .ticket-button.disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
         }
 
         .loading {
+            display: none;
             text-align: center;
-            padding: 40px;
-            font-size: 18px;
-            color: #6c757d;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
         }
 
         .spinner {
@@ -248,7 +165,7 @@
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 0 auto;
         }
 
         @keyframes spin {
@@ -256,386 +173,111 @@
             100% { transform: rotate(360deg); }
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: white;
-            margin: 10% auto;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 600px;
-            position: relative;
-            animation: slideDown 0.3s;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .close {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #999;
-        }
-
-        .close:hover {
-            color: #333;
-        }
-
-        .config-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
+        #camera-status {
+            text-align: center;
+            padding: 10px;
             margin-bottom: 20px;
-        }
-
-        .config-section label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .config-section input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
+            border-radius: 5px;
             font-size: 14px;
         }
 
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .hidden {
+            display: none !important;
         }
 
-        .alert-success {
-            background: #d4edda;
-            border: 2px solid #28a745;
-            color: #155724;
-        }
-
-        .alert-error {
-            background: #f8d7da;
-            border: 2px solid #dc3545;
-            color: #721c24;
-        }
-
-        .participant-details {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .participant-details h3 {
-            margin-bottom: 15px;
-            color: #667eea;
-        }
-
-        .detail-row {
-            padding: 10px 0;
-            border-bottom: 1px solid #dee2e6;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        #auto-refresh-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: none;
-        }
-
-        #auto-refresh-indicator.active {
-            display: block;
-        }
-
-        #qr-scanner-section {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: none;
-        }
-
-        #qr-scanner-section.active {
-            display: block;
-        }
-
-        #reader {
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 20px 0;
-            border: 3px solid #667eea;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        #scanner-status {
-            text-align: center;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-
-        .scanner-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-
-        .mode-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        .mode-button {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #dee2e6;
-            background: white;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .mode-button:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-
-        .mode-button.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn-secondary {
+            background: #6c757d;
             color: white;
         }
 
-        .last-scan {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 15px;
-            border-left: 4px solid #2196f3;
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        #manual-code {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Sistema Completo de Check-in</h1>
-            <p>Scanner QR Code + Lista de Participantes + Gestão Manual</p>
-            
-            <div class="header-actions">
-                <button class="btn btn-primary" onclick="showConfig()">
-                    ⚙️ Configurar API
-                </button>
-                <button class="btn btn-primary" onclick="loadParticipants()">
-                    🔄 Atualizar Lista
-                </button>
-                <button class="btn btn-secondary" onclick="toggleAutoRefresh()">
-                    <span id="auto-refresh-text">⏱️ Ativar Atualização Automática</span>
-                </button>
-                <button class="btn btn-warning" onclick="exportReport()">
-                    📊 Exportar Relatório
-                </button>
-            </div>
-        </div>
-
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="total-participants">0</div>
-                <div class="stat-label">Total de Participantes</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="total-tickets">0</div>
-                <div class="stat-label">Total de Ingressos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="checked-in">0</div>
-                <div class="stat-label">Check-ins Realizados</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="attendance-rate">0%</div>
-                <div class="stat-label">Taxa de Comparecimento</div>
-            </div>
+            <h1>🎫 Validador de Ingressos</h1>
+            <p>Sistema de Check-in por QR Code</p>
         </div>
 
         <div class="content">
-            <!-- Seletor de Modo -->
-            <div class="mode-selector">
-                <div class="mode-button active" id="mode-list" onclick="switchMode('list')">
-                    📋 Lista de Participantes
-                </div>
-                <div class="mode-button" id="mode-scanner" onclick="switchMode('scanner')">
-                    📷 Scanner QR Code
-                </div>
+            <div class="info-box">
+                <strong>⚙️ Configuração Necessária:</strong>
+                <p>1. Cole a URL do webhook N8N de confirmação abaixo</p>
+                <p>2. Use o MESMO webhook da Lista de Participantes</p>
+                <p>3. Assim ambos os sistemas ficam sincronizados! 🔄</p>
             </div>
 
-            <!-- Área do Scanner QR Code -->
-            <div id="qr-scanner-section">
-                <h2 style="text-align: center; color: #667eea; margin-bottom: 20px;">
-                    📷 Scanner de QR Code
-                </h2>
-                
-                <div id="scanner-status"></div>
-                
-                <div id="reader" style="display: none;"></div>
-                
-                <div class="scanner-buttons">
-                    <button id="start-scanner-btn" class="btn btn-primary" onclick="startQRScanner()">
-                        📷 Iniciar Scanner
-                    </button>
-                    <button id="stop-scanner-btn" class="btn btn-danger" onclick="stopQRScanner()" style="display: none;">
-                        ⏹️ Parar Scanner
-                    </button>
-                </div>
-
-                <div id="last-scan-info" style="display: none;"></div>
-            </div>
-
-            <!-- Área da Lista de Participantes -->
-            <div id="list-section">
-                <div class="search-bar">
+            <div style="margin-bottom: 20px;">
+                <label for="webhook-url" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">
+                    URL do Webhook N8N (Confirmar Presença):
+                </label>
                 <input 
                     type="text" 
-                    id="search-input" 
-                    placeholder="🔍 Buscar por nome, CPF ou código..."
-                    onkeyup="filterParticipants()"
-                >
-                <select id="status-filter" onchange="filterParticipants()">
-                    <option value="all">Todos</option>
-                    <option value="pending">Aguardando Check-in</option>
-                    <option value="partial">Check-in Parcial</option>
-                    <option value="complete">Check-in Completo</option>
-                </select>
-            </div>
-
-            <div id="alert-container"></div>
-
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Carregando participantes...</p>
-            </div>
-
-            <div id="participants-container" style="display: none;">
-                <table class="participants-table">
-                    <thead>
-                        <tr>
-                            <th>Participante</th>
-                            <th>CPF</th>
-                            <th>Ingressos</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="participants-tbody">
-                        <!-- Será preenchido via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-            </div><!-- Fim list-section -->
-        </div>
-    </div>
-
-    <!-- Modal de Configuração -->
-    <div id="config-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeConfig()">&times;</span>
-            <h2>⚙️ Configuração da API</h2>
-            
-            <div class="config-section">
-                <label>URL do Webhook N8N (Listar Participantes):</label>
-                <input 
-                    type="text" 
-                    id="api-list-url" 
-                    placeholder="https://seu-n8n.com/webhook/listar-participantes"
-                >
-            </div>
-
-            <div class="config-section">
-                <label>URL do Webhook N8N (Confirmar Presença):</label>
-                <input 
-                    type="text" 
-                    id="api-checkin-url" 
+                    id="webhook-url" 
                     placeholder="https://seu-n8n.com/webhook/confirmar-presenca"
+                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px;"
+                    value=""
                 >
+                <small style="color: #6c757d; display: block; margin-top: 5px;">
+                    💡 Use a mesma URL do sistema de Lista de Participantes
+                </small>
             </div>
 
-            <button class="btn btn-primary" onclick="saveConfig()" style="width: 100%;">
-                💾 Salvar Configurações
+            <button id="start-btn" class="btn btn-primary" onclick="startScanner()">
+                📷 Iniciar Scanner
             </button>
-        </div>
-    </div>
 
-    <!-- Modal de Detalhes do Participante -->
-    <div id="details-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeDetails()">&times;</span>
-            <div id="participant-details-content"></div>
-        </div>
-    </div>
+            <button class="btn btn-secondary" onclick="toggleManualInput()" style="margin-top: 5px;">
+                ✍️ Usar Entrada Manual
+            </button>
 
-    <div id="auto-refresh-indicator">
-        🔄 Atualizando em <span id="refresh-countdown">30</span>s
+            <div id="camera-status" class="hidden"></div>
+
+            <div id="reader" class="hidden"></div>
+
+            <button id="stop-btn" class="btn btn-danger hidden" onclick="stopScanner()">
+                ⏹️ Parar Scanner
+            </button>
+
+            <div id="manual-input-section" class="hidden" style="margin-top: 20px;">
+                <div class="info-box" style="border-left-color: #ffc107;">
+                    <strong>✍️ Entrada Manual</strong>
+                    <p>Se a câmera não funcionar, digite o código do ingresso manualmente:</p>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input 
+                        type="text" 
+                        id="manual-code" 
+                        placeholder="Ex: NEEL1761875445591-A"
+                        style="flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; text-transform: uppercase;"
+                    >
+                    <button class="btn btn-primary" onclick="validateManualCode()" style="width: auto; padding: 12px 24px;">
+                        Validar
+                    </button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px;">Validando ingresso...</p>
+            </div>
+
+            <div id="result" class="result"></div>
+        </div>
     </div>
 
     <script>
-        let participants = [];
-        let autoRefreshInterval = null;
-        let countdownInterval = null;
-        let refreshCountdown = 30;
-        let html5QrCode = null;
+        let html5QrCode;
         let isScanning = false;
         let cameras = [];
-        let currentMode = 'list';
 
         // Função para extrair o código do ingresso do texto do QR Code
         function extractCodigoFromQRText(qrText) {
@@ -654,25 +296,7 @@
             return null;
         }
 
-        // Alternar entre modos (Lista ou Scanner)
-        function switchMode(mode) {
-            currentMode = mode;
-            
-            // Atualiza botões
-            document.getElementById('mode-list').classList.toggle('active', mode === 'list');
-            document.getElementById('mode-scanner').classList.toggle('active', mode === 'scanner');
-            
-            // Mostra/esconde seções
-            document.getElementById('list-section').style.display = mode === 'list' ? 'block' : 'none';
-            document.getElementById('qr-scanner-section').classList.toggle('active', mode === 'scanner');
-            
-            // Para o scanner se trocar de modo
-            if (mode === 'list' && isScanning) {
-                stopQRScanner();
-            }
-        }
-
-        // Detectar câmeras disponíveis
+        // Função para detectar câmeras disponíveis
         async function detectCameras() {
             try {
                 const devices = await Html5Qrcode.getCameras();
@@ -689,86 +313,94 @@
             }
         }
 
-        // Iniciar Scanner QR Code
-        async function startQRScanner() {
-            const checkinUrl = localStorage.getItem('api-checkin-url');
+        // Função melhorada para iniciar o scanner (compatível com Android)
+        async function startScanner() {
+            const webhookUrl = document.getElementById('webhook-url').value.trim();
             
-            if (!checkinUrl) {
-                showAlert('Configure a URL da API primeiro', 'error');
-                showConfig();
+            if (!webhookUrl) {
+                showResult('error', 'Erro de Configuração', 'Por favor, insira a URL do webhook N8N antes de iniciar o scanner.');
                 return;
             }
 
             if (isScanning) return;
 
-            const scannerStatus = document.getElementById('scanner-status');
-            scannerStatus.textContent = '🔍 Procurando câmeras...';
-            scannerStatus.style.background = '#fff3cd';
-            scannerStatus.style.color = '#856404';
+            const cameraStatus = document.getElementById('camera-status');
+            cameraStatus.textContent = '🔍 Procurando câmeras...';
+            cameraStatus.style.background = '#fff3cd';
+            cameraStatus.style.color = '#856404';
+            cameraStatus.classList.remove('hidden');
 
             // Detecta câmeras disponíveis
             const hasCameras = await detectCameras();
             
             if (!hasCameras) {
-                scannerStatus.textContent = '❌ Nenhuma câmera encontrada';
-                scannerStatus.style.background = '#f8d7da';
-                scannerStatus.style.color = '#721c24';
-                showAlert('Câmera não encontrada. Permita o acesso à câmera ou use o modo Lista.', 'error');
+                cameraStatus.textContent = '❌ Nenhuma câmera encontrada';
+                cameraStatus.style.background = '#f8d7da';
+                cameraStatus.style.color = '#721c24';
+                showResult('error', 'Câmera Não Encontrada', 
+                    'Não foi possível encontrar uma câmera neste dispositivo. Use o modo de entrada manual abaixo.');
+                document.getElementById('manual-input-section').classList.remove('hidden');
                 return;
             }
 
             try {
-                scannerStatus.textContent = '📷 Inicializando câmera...';
+                cameraStatus.textContent = '📷 Inicializando câmera...';
                 
-                document.getElementById('reader').style.display = 'block';
-                document.getElementById('start-scanner-btn').style.display = 'none';
-                document.getElementById('stop-scanner-btn').style.display = 'inline-block';
+                document.getElementById('reader').classList.remove('hidden');
+                document.getElementById('start-btn').classList.add('hidden');
+                document.getElementById('stop-btn').classList.remove('hidden');
 
                 html5QrCode = new Html5Qrcode("reader");
 
+                // Configuração otimizada para Android
                 const config = { 
                     fps: 10,
                     qrbox: { width: 250, height: 250 },
                     aspectRatio: 1.0,
                     disableFlip: false,
+                    // Configurações adicionais para Android
                     experimentalFeatures: {
                         useBarCodeDetectorIfSupported: true
                     }
                 };
 
-                // Tenta com câmera traseira
+                // Tenta primeiro com a câmera traseira (environment)
                 try {
                     await html5QrCode.start(
                         { facingMode: "environment" },
                         config,
-                        onQRScanSuccess,
-                        onQRScanError
+                        onScanSuccess,
+                        onScanError
                     );
                 } catch (err1) {
-                    // Fallback para última câmera
+                    console.log('Tentativa 1 falhou, tentando com ID da câmera...');
+                    
+                    // Se falhar, tenta com o ID da última câmera (geralmente a traseira)
                     const lastCamera = cameras[cameras.length - 1];
                     try {
                         await html5QrCode.start(
                             lastCamera.id,
                             config,
-                            onQRScanSuccess,
-                            onQRScanError
+                            onScanSuccess,
+                            onScanError
                         );
                     } catch (err2) {
-                        // Fallback para primeira câmera
+                        console.log('Tentativa 2 falhou, tentando com primeira câmera...');
+                        
+                        // Se ainda falhar, tenta com a primeira câmera
                         await html5QrCode.start(
                             cameras[0].id,
                             config,
-                            onQRScanSuccess,
-                            onQRScanError
+                            onScanSuccess,
+                            onScanError
                         );
                     }
                 }
 
                 isScanning = true;
-                scannerStatus.textContent = '✅ Câmera ativa - Aponte para o QR Code';
-                scannerStatus.style.background = '#d4edda';
-                scannerStatus.style.color = '#155724';
+                cameraStatus.textContent = '✅ Câmera ativa - Aponte para o QR Code';
+                cameraStatus.style.background = '#d4edda';
+                cameraStatus.style.color = '#155724';
 
             } catch (err) {
                 console.error('Erro ao iniciar scanner:', err);
@@ -776,47 +408,51 @@
                 let errorMessage = 'Não foi possível acessar a câmera. ';
                 
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    errorMessage += 'Permita o acesso à câmera nas configurações do navegador.';
+                    errorMessage += 'Por favor, permita o acesso à câmera nas configurações do navegador.';
                 } else if (err.name === 'NotFoundError') {
                     errorMessage += 'Câmera não encontrada neste dispositivo.';
                 } else if (err.name === 'NotReadableError') {
-                    errorMessage += 'A câmera está sendo usada por outro aplicativo.';
+                    errorMessage += 'A câmera está sendo usada por outro aplicativo. Feche outros apps e tente novamente.';
                 } else {
                     errorMessage += 'Erro: ' + err.message;
                 }
                 
-                scannerStatus.textContent = '❌ Erro ao acessar câmera';
-                scannerStatus.style.background = '#f8d7da';
-                scannerStatus.style.color = '#721c24';
+                cameraStatus.textContent = '❌ Erro ao acessar câmera';
+                cameraStatus.style.background = '#f8d7da';
+                cameraStatus.style.color = '#721c24';
                 
-                showAlert(errorMessage, 'error');
-                resetQRScanner();
+                showResult('error', 'Erro na Câmera', errorMessage + '<br><br>💡 <strong>Tente:</strong><br>1. Recarregar a página<br>2. Permitir acesso à câmera<br>3. Fechar outros apps usando a câmera<br>4. Usar o modo de entrada manual abaixo');
+                
+                // Mostra opção de entrada manual
+                document.getElementById('manual-input-section').classList.remove('hidden');
+                
+                resetScanner();
             }
         }
 
-        // Parar Scanner QR Code
-        async function stopQRScanner() {
+        // Função para parar o scanner
+        async function stopScanner() {
             if (html5QrCode && isScanning) {
                 try {
                     await html5QrCode.stop();
-                    resetQRScanner();
-                    document.getElementById('scanner-status').textContent = '';
+                    resetScanner();
                 } catch (err) {
                     console.error('Erro ao parar scanner:', err);
                 }
             }
         }
 
-        // Resetar Scanner
-        function resetQRScanner() {
+        // Função para resetar o scanner
+        function resetScanner() {
             isScanning = false;
-            document.getElementById('reader').style.display = 'none';
-            document.getElementById('start-scanner-btn').style.display = 'inline-block';
-            document.getElementById('stop-scanner-btn').style.display = 'none';
+            document.getElementById('reader').classList.add('hidden');
+            document.getElementById('start-btn').classList.remove('hidden');
+            document.getElementById('stop-btn').classList.add('hidden');
+            document.getElementById('camera-status').classList.add('hidden');
         }
 
         // Callback quando QR Code é lido com sucesso
-        async function onQRScanSuccess(decodedText, decodedResult) {
+        async function onScanSuccess(decodedText, decodedResult) {
             console.log('QR Code lido:', decodedText);
 
             // Pausa o scanner temporariamente
@@ -828,42 +464,39 @@
             const codigo = extractCodigoFromQRText(decodedText);
 
             if (!codigo) {
-                showAlert('QR Code inválido - não foi possível extrair o código do ingresso', 'error');
+                showResult('warning', 'QR Code Inválido', 'Não foi possível extrair o código do ingresso deste QR Code.');
                 setTimeout(() => {
                     if (html5QrCode && isScanning) {
                         html5QrCode.resume();
                     }
-                }, 2000);
+                }, 3000);
                 return;
             }
 
-            // Valida automaticamente
-            await confirmPresenceFromQR(codigo, decodedText);
+            // Valida com o webhook
+            await validateTicket(codigo, decodedText);
         }
 
-        // Callback para erros de scan (ignora)
-        function onQRScanError(errorMessage) {
+        // Callback para erros de leitura (pode ser ignorado)
+        function onScanError(errorMessage) {
             // Ignora erros comuns de scan
         }
 
-        // Confirmar presença via QR Code
-        async function confirmPresenceFromQR(codigo, qrData) {
-            const checkinUrl = localStorage.getItem('api-checkin-url');
+        // Função para validar o ingresso via webhook
+        async function validateTicket(codigo, qrData) {
+            const webhookUrl = document.getElementById('webhook-url').value.trim();
+            const loading = document.getElementById('loading');
             
-            if (!checkinUrl) {
-                showAlert('Configure a URL da API primeiro', 'error');
-                return;
-            }
+            loading.classList.add('active');
 
             try {
-                const response = await fetch(checkinUrl, {
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         codigo: codigo,
-                        status: 'UTILIZADO',
                         qr_data: qrData,
                         timestamp: new Date().toISOString()
                     })
@@ -871,446 +504,125 @@
 
                 const result = await response.json();
 
+                loading.classList.remove('active');
+
                 if (result.success) {
-                    // Extrai nome do participante
+                    // Extrai informações do participante
                     const nomeMatch = qrData.match(/PARTICIPANTE:\s*([^\n]+)/);
-                    const nome = nomeMatch ? nomeMatch[1] : (result.data.participante || 'Participante');
+                    const nome = nomeMatch ? nomeMatch[1] : 'N/A';
 
-                    // Mostra informações do último scan
-                    const lastScanInfo = document.getElementById('last-scan-info');
-                    lastScanInfo.innerHTML = `
-                        <div class="last-scan">
-                            <strong>✅ Check-in Confirmado!</strong><br>
-                            <strong>Participante:</strong> ${nome}<br>
-                            <strong>Código:</strong> ${codigo}<br>
-                            <strong>Hora:</strong> ${new Date().toLocaleTimeString('pt-BR')}
-                        </div>
-                    `;
-                    lastScanInfo.style.display = 'block';
+                    showResult('success', '✅ Ingresso Validado!', 
+                        `<strong>Código:</strong> ${codigo}<br>
+                         <strong>Participante:</strong> ${nome}<br>
+                         <strong>Hora:</strong> ${new Date().toLocaleTimeString('pt-BR')}<br>
+                         ${result.message || 'Check-in realizado com sucesso!'}`
+                    );
 
-                    showAlert(`✅ Check-in confirmado: ${nome}`, 'success');
-
-                    // Atualiza a lista de participantes
-                    loadParticipants();
-
-                    // Aguarda 2 segundos e retoma o scanner
+                    // Aguarda 3 segundos e retoma o scanner
                     setTimeout(() => {
+                        document.getElementById('result').style.display = 'none';
                         if (html5QrCode && isScanning) {
                             html5QrCode.resume();
                         }
-                    }, 2000);
+                    }, 3000);
 
                 } else {
-                    showAlert(`❌ Erro: ${result.message || 'Ingresso não encontrado ou já utilizado'}`, 'error');
+                    showResult('error', '❌ Ingresso Inválido', 
+                        `<strong>Código:</strong> ${codigo}<br>
+                         <strong>Motivo:</strong> ${result.message || 'Ingresso não encontrado ou já utilizado'}`
+                    );
 
+                    // Aguarda 3 segundos e retoma o scanner
                     setTimeout(() => {
+                        document.getElementById('result').style.display = 'none';
                         if (html5QrCode && isScanning) {
                             html5QrCode.resume();
                         }
-                    }, 2000);
+                    }, 3000);
                 }
 
             } catch (error) {
-                console.error('Erro ao confirmar presença:', error);
-                showAlert('Erro de conexão com o servidor', 'error');
+                console.error('Erro na validação:', error);
+                loading.classList.remove('active');
+                
+                showResult('error', 'Erro de Conexão', 
+                    'Não foi possível conectar ao servidor. Verifique a URL do webhook e sua conexão com a internet.'
+                );
 
+                // Aguarda 3 segundos e retoma o scanner
                 setTimeout(() => {
+                    document.getElementById('result').style.display = 'none';
                     if (html5QrCode && isScanning) {
                         html5QrCode.resume();
                     }
-                }, 2000);
+                }, 3000);
             }
         }
 
-        // Carrega configurações salvas
-        window.onload = function() {
-            const listUrl = localStorage.getItem('api-list-url');
-            const checkinUrl = localStorage.getItem('api-checkin-url');
+        // Função para mostrar resultado
+        function showResult(type, title, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = `
+                <h3>${title}</h3>
+                <p>${message}</p>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // Função para alternar entrada manual
+        function toggleManualInput() {
+            const manualSection = document.getElementById('manual-input-section');
+            manualSection.classList.toggle('hidden');
             
-            if (listUrl) document.getElementById('api-list-url').value = listUrl;
-            if (checkinUrl) document.getElementById('api-checkin-url').value = checkinUrl;
-
-            if (listUrl && checkinUrl) {
-                loadParticipants();
-            } else {
-                showConfig();
+            if (!manualSection.classList.contains('hidden')) {
+                // Foca no campo de entrada
+                document.getElementById('manual-code').focus();
             }
-        };
-
-        // Mostrar modal de configuração
-        function showConfig() {
-            document.getElementById('config-modal').style.display = 'block';
         }
 
-        // Fechar modal de configuração
-        function closeConfig() {
-            document.getElementById('config-modal').style.display = 'none';
-        }
-
-        // Salvar configurações
-        function saveConfig() {
-            const listUrl = document.getElementById('api-list-url').value.trim();
-            const checkinUrl = document.getElementById('api-checkin-url').value.trim();
-
-            if (!listUrl || !checkinUrl) {
-                showAlert('Por favor, preencha ambas as URLs', 'error');
+        // Função para validar código digitado manualmente
+        async function validateManualCode() {
+            const codigo = document.getElementById('manual-code').value.trim().toUpperCase();
+            
+            if (!codigo) {
+                showResult('warning', 'Código Vazio', 'Por favor, digite o código do ingresso.');
                 return;
             }
 
-            localStorage.setItem('api-list-url', listUrl);
-            localStorage.setItem('api-checkin-url', checkinUrl);
-
-            showAlert('Configurações salvas com sucesso!', 'success');
-            closeConfig();
-            loadParticipants();
+            // Simula o texto do QR code para manter compatibilidade
+            const qrData = `CODIGO: ${codigo}`;
+            
+            await validateTicket(codigo, qrData);
+            
+            // Limpa o campo após validação
+            document.getElementById('manual-code').value = '';
         }
 
-        // Carregar participantes
-        async function loadParticipants() {
-            const listUrl = localStorage.getItem('api-list-url');
-            
-            if (!listUrl) {
-                showAlert('Configure a URL da API primeiro', 'error');
-                showConfig();
-                return;
-            }
-
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('participants-container').style.display = 'none';
-
-            try {
-                const response = await fetch(listUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
+        // Permite validar com Enter no campo manual
+        document.addEventListener('DOMContentLoaded', function() {
+            const manualCodeInput = document.getElementById('manual-code');
+            if (manualCodeInput) {
+                manualCodeInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        validateManualCode();
                     }
                 });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    participants = data.data;
-                    renderParticipants();
-                    updateStats();
-                } else {
-                    showAlert('Erro ao carregar participantes: ' + data.message, 'error');
-                }
-
-            } catch (error) {
-                console.error('Erro:', error);
-                showAlert('Erro de conexão com o servidor', 'error');
-            } finally {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('participants-container').style.display = 'block';
             }
-        }
+        });
 
-        // Renderizar tabela de participantes
-        function renderParticipants() {
-            const tbody = document.getElementById('participants-tbody');
-            tbody.innerHTML = '';
+        // Salva a URL do webhook no localStorage
+        document.getElementById('webhook-url').addEventListener('blur', function() {
+            localStorage.setItem('webhook-url', this.value);
+        });
 
-            // Agrupa ingressos por participante (CPF)
-            const grouped = {};
-            
-            participants.forEach(p => {
-                const key = p.cpf || p.participante;
-                if (!grouped[key]) {
-                    grouped[key] = {
-                        participante: p.participante,
-                        cpf: p.cpf,
-                        tickets: []
-                    };
-                }
-                grouped[key].tickets.push(p);
-            });
-
-            // Renderiza cada participante
-            Object.values(grouped).forEach(group => {
-                const row = document.createElement('tr');
-                row.className = 'participant-row';
-                
-                const totalTickets = group.tickets.length;
-                const usedTickets = group.tickets.filter(t => t.status === 'UTILIZADO').length;
-                
-                let statusClass = '';
-                let statusText = '';
-                
-                if (usedTickets === 0) {
-                    statusClass = '';
-                    statusText = '<span class="status-badge status-valid">Aguardando</span>';
-                } else if (usedTickets < totalTickets) {
-                    statusClass = 'partial';
-                    statusText = '<span class="status-badge status-partial">Parcial</span>';
-                } else {
-                    statusClass = 'checked-in';
-                    statusText = '<span class="status-badge status-used">Completo</span>';
-                }
-
-                row.className += ' ' + statusClass;
-                
-                row.innerHTML = `
-                    <td><strong>${group.participante}</strong></td>
-                    <td>${group.cpf || 'N/A'}</td>
-                    <td>${usedTickets} de ${totalTickets}</td>
-                    <td>${statusText}</td>
-                    <td>
-                        <div class="tickets-control">
-                            ${group.tickets.map((ticket, idx) => `
-                                <button 
-                                    class="ticket-button ${ticket.status === 'UTILIZADO' ? 'active' : ''}"
-                                    onclick="toggleTicket('${ticket.codigo}')"
-                                    title="Ingresso ${idx + 1} - ${ticket.codigo}"
-                                >
-                                    ${idx + 1}
-                                </button>
-                            `).join('')}
-                        </div>
-                    </td>
-                `;
-
-                row.onclick = function(e) {
-                    if (!e.target.classList.contains('ticket-button')) {
-                        showDetails(group);
-                    }
-                };
-
-                tbody.appendChild(row);
-            });
-        }
-
-        // Alternar status de um ingresso específico
-        async function toggleTicket(codigo) {
-            const checkinUrl = localStorage.getItem('api-checkin-url');
-            
-            if (!checkinUrl) {
-                showAlert('Configure a URL da API primeiro', 'error');
-                return;
+        // Carrega a URL do webhook do localStorage
+        window.addEventListener('load', function() {
+            const savedUrl = localStorage.getItem('webhook-url');
+            if (savedUrl) {
+                document.getElementById('webhook-url').value = savedUrl;
             }
-
-            const ticket = participants.find(p => p.codigo === codigo);
-            
-            if (!ticket) return;
-
-            const newStatus = ticket.status === 'UTILIZADO' ? 'VALIDO' : 'UTILIZADO';
-
-            try {
-                const response = await fetch(checkinUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        codigo: codigo,
-                        status: newStatus
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert(
-                        newStatus === 'UTILIZADO' 
-                            ? `✅ Check-in confirmado para ${ticket.participante}` 
-                            : `↩️ Check-in cancelado para ${ticket.participante}`,
-                        'success'
-                    );
-                    
-                    // Atualiza localmente
-                    ticket.status = newStatus;
-                    if (newStatus === 'UTILIZADO') {
-                        ticket.data_utilizacao = new Date().toISOString();
-                    } else {
-                        ticket.data_utilizacao = null;
-                    }
-                    
-                    renderParticipants();
-                    updateStats();
-                } else {
-                    showAlert('Erro: ' + result.message, 'error');
-                }
-
-            } catch (error) {
-                console.error('Erro:', error);
-                showAlert('Erro ao confirmar presença', 'error');
-            }
-        }
-
-        // Mostrar detalhes do participante
-        function showDetails(group) {
-            const content = document.getElementById('participant-details-content');
-            
-            let html = `
-                <h2>👤 ${group.participante}</h2>
-                <div class="participant-details">
-                    <h3>📋 Informações</h3>
-                    <div class="detail-row">
-                        <strong>CPF:</strong>
-                        <span>${group.cpf || 'N/A'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <strong>Total de Ingressos:</strong>
-                        <span>${group.tickets.length}</span>
-                    </div>
-                    
-                    <h3 style="margin-top: 20px;">🎫 Ingressos</h3>
-            `;
-
-            group.tickets.forEach((ticket, idx) => {
-                html += `
-                    <div class="detail-row">
-                        <div>
-                            <strong>Ingresso ${idx + 1}</strong><br>
-                            <small>Código: ${ticket.codigo}</small>
-                        </div>
-                        <div style="text-align: right;">
-                            ${ticket.status === 'UTILIZADO' 
-                                ? `<span class="status-badge status-used">Utilizado</span><br><small>${new Date(ticket.data_utilizacao).toLocaleString('pt-BR')}</small>` 
-                                : `<span class="status-badge status-valid">Válido</span>`
-                            }
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += `
-                </div>
-                <button class="btn btn-primary" onclick="closeDetails()" style="width: 100%; margin-top: 20px;">
-                    Fechar
-                </button>
-            `;
-
-            content.innerHTML = html;
-            document.getElementById('details-modal').style.display = 'block';
-        }
-
-        // Fechar detalhes
-        function closeDetails() {
-            document.getElementById('details-modal').style.display = 'none';
-        }
-
-        // Filtrar participantes
-        function filterParticipants() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const statusFilter = document.getElementById('status-filter').value;
-            
-            const rows = document.querySelectorAll('.participant-row');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const matchesSearch = text.includes(searchTerm);
-                
-                let matchesStatus = true;
-                if (statusFilter !== 'all') {
-                    if (statusFilter === 'pending') {
-                        matchesStatus = !row.classList.contains('checked-in') && !row.classList.contains('partial');
-                    } else if (statusFilter === 'partial') {
-                        matchesStatus = row.classList.contains('partial');
-                    } else if (statusFilter === 'complete') {
-                        matchesStatus = row.classList.contains('checked-in');
-                    }
-                }
-                
-                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-            });
-        }
-
-        // Atualizar estatísticas
-        function updateStats() {
-            // Agrupa por participante único
-            const uniqueParticipants = new Set(participants.map(p => p.cpf || p.participante));
-            const totalParticipants = uniqueParticipants.size;
-            const totalTickets = participants.length;
-            const checkedIn = participants.filter(p => p.status === 'UTILIZADO').length;
-            const rate = totalTickets > 0 ? Math.round((checkedIn / totalTickets) * 100) : 0;
-
-            document.getElementById('total-participants').textContent = totalParticipants;
-            document.getElementById('total-tickets').textContent = totalTickets;
-            document.getElementById('checked-in').textContent = checkedIn;
-            document.getElementById('attendance-rate').textContent = rate + '%';
-        }
-
-        // Ativar/Desativar atualização automática
-        function toggleAutoRefresh() {
-            if (autoRefreshInterval) {
-                // Desativar
-                clearInterval(autoRefreshInterval);
-                clearInterval(countdownInterval);
-                autoRefreshInterval = null;
-                document.getElementById('auto-refresh-text').textContent = '⏱️ Ativar Atualização Automática';
-                document.getElementById('auto-refresh-indicator').classList.remove('active');
-            } else {
-                // Ativar
-                refreshCountdown = 30;
-                autoRefreshInterval = setInterval(() => {
-                    loadParticipants();
-                    refreshCountdown = 30;
-                }, 30000); // 30 segundos
-                
-                countdownInterval = setInterval(() => {
-                    refreshCountdown--;
-                    document.getElementById('refresh-countdown').textContent = refreshCountdown;
-                    if (refreshCountdown <= 0) refreshCountdown = 30;
-                }, 1000);
-                
-                document.getElementById('auto-refresh-text').textContent = '⏹️ Desativar Atualização Automática';
-                document.getElementById('auto-refresh-indicator').classList.add('active');
-            }
-        }
-
-        // Exportar relatório
-        function exportReport() {
-            let csv = 'Participante,CPF,Total Ingressos,Ingressos Utilizados,Status\n';
-            
-            const grouped = {};
-            participants.forEach(p => {
-                const key = p.cpf || p.participante;
-                if (!grouped[key]) {
-                    grouped[key] = {
-                        participante: p.participante,
-                        cpf: p.cpf,
-                        tickets: []
-                    };
-                }
-                grouped[key].tickets.push(p);
-            });
-
-            Object.values(grouped).forEach(group => {
-                const total = group.tickets.length;
-                const used = group.tickets.filter(t => t.status === 'UTILIZADO').length;
-                const status = used === 0 ? 'Aguardando' : used < total ? 'Parcial' : 'Completo';
-                
-                csv += `"${group.participante}","${group.cpf || 'N/A'}",${total},${used},${status}\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `relatorio-presenca-${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-        }
-
-        // Mostrar alerta
-        function showAlert(message, type) {
-            const container = document.getElementById('alert-container');
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type}`;
-            alert.textContent = message;
-            
-            container.innerHTML = '';
-            container.appendChild(alert);
-            
-            setTimeout(() => {
-                alert.remove();
-            }, 5000);
-        }
-
-        // Fechar modais ao clicar fora
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        };
+        });
     </script>
 </body>
 </html>
